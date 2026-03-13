@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>lzcat Artifacts</title>
+    <style>
+      :root {
+        --bg: #f3efe6;
+        --panel: rgba(255, 252, 246, 0.86);
+        --ink: #1d1a16;
+        --muted: #6a6255;
+        --line: rgba(29, 26, 22, 0.12);
+        --accent: #c04b2f;
+        --accent-2: #284b63;
+        --shadow: 0 24px 80px rgba(40, 31, 20, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Avenir Next", "PingFang SC", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(192, 75, 47, 0.18), transparent 32%),
+          radial-gradient(circle at top right, rgba(40, 75, 99, 0.18), transparent 28%),
+          linear-gradient(180deg, #fbf8f2 0%, var(--bg) 100%);
+      }
+
+      .shell {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 40px 20px 64px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 18px;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(32px, 5vw, 64px);
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.6;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .toolbar {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1.3fr 0.8fr 0.7fr auto;
+        padding: 18px;
+        margin-bottom: 18px;
+      }
+
+      .toolbar input,
+      .toolbar select,
+      .toolbar button {
+        min-height: 48px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        padding: 0 14px;
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--ink);
+        font: inherit;
+      }
+
+      .toolbar button {
+        background: var(--accent);
+        color: white;
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .stat {
+        padding: 18px;
+      }
+
+      .stat-label {
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .list {
+        display: grid;
+        gap: 14px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: start;
+        margin-bottom: 12px;
+      }
+
+      .repo {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(40, 75, 99, 0.1);
+        color: var(--accent-2);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 14px;
+      }
+
+      .assets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .asset {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        text-decoration: none;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .asset.primary {
+        background: rgba(192, 75, 47, 0.1);
+        border-color: rgba(192, 75, 47, 0.2);
+      }
+
+      .empty,
+      .loading,
+      .error {
+        padding: 32px 20px;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      @media (max-width: 900px) {
+        .toolbar {
+          grid-template-columns: 1fr;
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+        }
+
+        .card-top {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="hero">
+        <div class="eyebrow">LazyCat Central Artifacts</div>
+        <h1>统一下载所有 `.lpk` 制品</h1>
+        <p>
+          这个页面直接读取 <code>CodeEagle/lzcat-artifacts</code> 的 GitHub Releases。
+          每一条记录都包含目标仓库版本、下载链接，以及构建摘要。
+        </p>
+      </section>
+
+      <section class="panel toolbar">
+        <input id="search" type="search" placeholder="搜索 repo / tag / version" />
+        <select id="repoFilter">
+          <option value="">全部仓库</option>
+        </select>
+        <select id="sortOrder">
+          <option value="newest">最新优先</option>
+          <option value="oldest">最早优先</option>
+        </select>
+        <button id="refresh">刷新</button>
+      </section>
+
+      <section class="stats">
+        <div class="panel stat">
+          <div class="stat-label">Release 数量</div>
+          <div id="releaseCount" class="stat-value">-</div>
+        </div>
+        <div class="panel stat">
+          <div class="stat-label">包含 `.lpk` 的记录</div>
+          <div id="packageCount" class="stat-value">-</div>
+        </div>
+        <div class="panel stat">
+          <div class="stat-label">最近发布时间</div>
+          <div id="latestDate" class="stat-value">-</div>
+        </div>
+      </section>
+
+      <section id="results" class="list">
+        <div class="panel loading">正在加载 release 数据...</div>
+      </section>
+    </div>
+
+    <script>
+      const owner = "CodeEagle";
+      const repo = "lzcat-artifacts";
+      const releasesUrl = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=100`;
+
+      const state = {
+        releases: [],
+        filtered: [],
+      };
+
+      const results = document.getElementById("results");
+      const search = document.getElementById("search");
+      const repoFilter = document.getElementById("repoFilter");
+      const sortOrder = document.getElementById("sortOrder");
+      const refresh = document.getElementById("refresh");
+
+      const fmtDate = (value) => {
+        if (!value) return "-";
+        return new Intl.DateTimeFormat("zh-CN", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(new Date(value));
+      };
+
+      function parseRepoName(tagName = "", releaseName = "") {
+        if (releaseName.includes(" v")) {
+          return releaseName.split(" v")[0];
+        }
+        const marker = tagName.lastIndexOf("-v");
+        if (marker > 0) {
+          return tagName.slice(0, marker).replace("--", "/");
+        }
+        return tagName.replace("--", "/");
+      }
+
+      function updateStats(items) {
+        document.getElementById("releaseCount").textContent = String(items.length);
+        document.getElementById("packageCount").textContent = String(
+          items.filter((item) => item.assets.some((asset) => asset.name.endsWith(".lpk"))).length
+        );
+        document.getElementById("latestDate").textContent = items.length
+          ? fmtDate(items[0].published_at)
+          : "-";
+      }
+
+      function populateRepoFilter(items) {
+        const current = repoFilter.value;
+        const repos = [...new Set(items.map((item) => item.repoName).filter(Boolean))].sort();
+        repoFilter.innerHTML = `<option value="">全部仓库</option>${repos
+          .map((name) => `<option value="${name}">${name}</option>`)
+          .join("")}`;
+        repoFilter.value = repos.includes(current) ? current : "";
+      }
+
+      function render(items) {
+        updateStats(items);
+        if (!items.length) {
+          results.innerHTML = `<div class="panel empty">没有匹配的制品。</div>`;
+          return;
+        }
+
+        results.innerHTML = items
+          .map((item) => {
+            const packageAsset = item.assets.find((asset) => asset.name.endsWith(".lpk"));
+            const reportAsset = item.assets.find((asset) => asset.name === "build-report.json");
+            const assets = item.assets
+              .map((asset) => {
+                const primary = asset.name.endsWith(".lpk") ? "primary" : "";
+                return `<a class="asset ${primary}" href="${asset.browser_download_url}" target="_blank" rel="noreferrer">
+                  <span>${asset.name}</span>
+                  <span>${(asset.size / 1024 / 1024).toFixed(2)} MB</span>
+                </a>`;
+              })
+              .join("");
+
+            return `
+              <article class="panel card">
+                <div class="card-top">
+                  <div>
+                    <div class="repo">${item.repoName || item.name}</div>
+                    <div class="meta">
+                      <span>tag: ${item.tag_name}</span>
+                      <span>发布时间: ${fmtDate(item.published_at)}</span>
+                      <span>assets: ${item.assets.length}</span>
+                    </div>
+                  </div>
+                  <div class="tag">${packageAsset ? "含 .lpk" : "仅报告/其他文件"}</div>
+                </div>
+                <div class="assets">${assets}</div>
+                <div class="meta" style="margin-top:14px;">
+                  <a href="${item.html_url}" target="_blank" rel="noreferrer">打开 Release</a>
+                  ${reportAsset ? `<a href="${reportAsset.browser_download_url}" target="_blank" rel="noreferrer">查看 build-report.json</a>` : ""}
+                  ${packageAsset ? `<a href="${packageAsset.browser_download_url}" target="_blank" rel="noreferrer">直接下载 .lpk</a>` : ""}
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function applyFilters() {
+        const keyword = search.value.trim().toLowerCase();
+        const repoName = repoFilter.value;
+        const order = sortOrder.value;
+
+        const items = [...state.releases]
+          .filter((item) => {
+            if (repoName && item.repoName !== repoName) return false;
+            if (!keyword) return true;
+            const haystack = [item.repoName, item.tag_name, item.name].join(" ").toLowerCase();
+            return haystack.includes(keyword);
+          })
+          .sort((a, b) => {
+            const diff = new Date(b.published_at) - new Date(a.published_at);
+            return order === "newest" ? diff : -diff;
+          });
+
+        state.filtered = items;
+        render(items);
+      }
+
+      async function loadReleases() {
+        results.innerHTML = `<div class="panel loading">正在刷新 release 数据...</div>`;
+        try {
+          const response = await fetch(releasesUrl, {
+            headers: { Accept: "application/vnd.github+json" },
+          });
+          if (!response.ok) {
+            throw new Error(`GitHub API returned ${response.status}`);
+          }
+          const data = await response.json();
+          state.releases = data.map((item) => ({
+            ...item,
+            repoName: parseRepoName(item.tag_name, item.name),
+          }));
+          populateRepoFilter(state.releases);
+          applyFilters();
+        } catch (error) {
+          results.innerHTML = `<div class="panel error">加载失败：${error.message}</div>`;
+        }
+      }
+
+      search.addEventListener("input", applyFilters);
+      repoFilter.addEventListener("change", applyFilters);
+      sortOrder.addEventListener("change", applyFilters);
+      refresh.addEventListener("click", loadReleases);
+
+      loadReleases();
+    </script>
+  </body>
+</html>
