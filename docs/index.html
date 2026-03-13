@@ -320,9 +320,7 @@
     </div>
 
     <script>
-      const owner = "CodeEagle";
-      const repo = "lzcat-artifacts";
-      const releasesUrl = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=100`;
+      const releasesUrl = "./releases.json";
 
       const state = {
         releases: [],
@@ -443,11 +441,9 @@
       async function loadReleases() {
         results.innerHTML = `<div class="panel loading">正在刷新 release 数据...</div>`;
         try {
-          const response = await fetch(releasesUrl, {
-            headers: { Accept: "application/vnd.github+json" },
-          });
+          const response = await fetch(`${releasesUrl}?ts=${Date.now()}`);
           if (!response.ok) {
-            throw new Error(`GitHub API returned ${response.status}`);
+            throw new Error(`静态索引返回 ${response.status}`);
           }
           const data = await response.json();
           state.releases = data.map((item) => ({

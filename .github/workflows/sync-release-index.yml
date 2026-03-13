@@ -1,0 +1,39 @@
+name: Sync Release Index
+
+on:
+  release:
+    types:
+      - published
+      - edited
+      - deleted
+      - released
+      - unpublished
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate release index
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/releases?per_page=100" > docs/releases.json
+
+      - name: Commit release index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/releases.json
+          if git diff --cached --quiet; then
+            echo "No release index changes"
+            exit 0
+          fi
+          git commit -m "Update release index"
+          git push origin HEAD:main
