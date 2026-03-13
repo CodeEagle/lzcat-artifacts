@@ -6,9 +6,12 @@ on:
       - published
       - edited
       - deleted
-      - released
       - unpublished
   workflow_dispatch:
+
+concurrency:
+  group: sync-release-index
+  cancel-in-progress: true
 
 permissions:
   contents: write
